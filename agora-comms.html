@@ -1,0 +1,728 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L3HARRIS Falcon III AN/PRC-152 Tactical Radio Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a, #2d4a35);
+            color: #00ff00;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .radio-container {
+            background: #2a2a2a;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 255, 0, 0.2);
+            border: 2px solid #004400;
+        }
+        
+        .radio-body {
+            background: linear-gradient(145deg, #1a1a1a, #333);
+            border-radius: 20px;
+            padding: 30px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+            border: 3px solid #444;
+            position: relative;
+            box-shadow: inset 0 0 20px rgba(0, 255, 0, 0.1);
+        }
+        
+        .brand-label {
+            text-align: center;
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .model-label {
+            text-align: center;
+            color: #888;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .display-section {
+            background: #000;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            height: 120px;
+            position: relative;
+            box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+        
+        .display {
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.4;
+            height: 100%;
+            overflow: hidden;
+            white-space: pre-line;
+        }
+        
+        .display-line {
+            display: block;
+            margin-bottom: 2px;
+        }
+        
+        .status-bar {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 10px;
+            color: #00ff00;
+        }
+        
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .control-button {
+            background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+            border: 2px solid #444;
+            border-radius: 6px;
+            padding: 10px 8px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 11px;
+            text-align: center;
+            transition: all 0.2s;
+            min-height: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-button:hover {
+            background: linear-gradient(145deg, #3a3a3a, #2a2a2a);
+            color: #00ff00;
+            border-color: #666;
+            transform: translateY(-1px);
+        }
+        
+        .control-button:active {
+            transform: translateY(1px);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+        
+        .control-button.active {
+            background: linear-gradient(145deg, #004400, #002200);
+            color: #00ff00;
+            border-color: #00ff00;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+        
+        .rotary-knob {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #333, #1a1a1a);
+            border: 3px solid #555;
+            margin: 10px auto;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .rotary-knob::after {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 3px;
+            height: 20px;
+            background: #00ff00;
+            border-radius: 2px;
+        }
+        
+        .rotary-knob:hover {
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+        
+        .ptt-button {
+            width: 100%;
+            height: 80px;
+            background: linear-gradient(145deg, #ff4444, #cc2222);
+            border: 3px solid #ff6666;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.2s;
+        }
+        
+        .ptt-button:hover {
+            background: linear-gradient(145deg, #ff6666, #ff4444);
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.4);
+        }
+        
+        .ptt-button:active {
+            background: linear-gradient(145deg, #cc2222, #aa1111);
+            transform: translateY(2px);
+        }
+        
+        .antenna {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 50px;
+            background: linear-gradient(to top, #444, #666);
+            border-radius: 2px;
+        }
+        
+        .antenna::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 8px;
+            height: 8px;
+            background: #888;
+            border-radius: 50%;
+        }
+        
+        .documentation {
+            background: #1a1a1a;
+            border-radius: 15px;
+            padding: 30px;
+            border: 2px solid #004400;
+            max-height: 800px;
+            overflow-y: auto;
+        }
+        
+        .documentation h1 {
+            color: #00ff00;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+            border-bottom: 2px solid #004400;
+            padding-bottom: 10px;
+        }
+        
+        .documentation h2 {
+            color: #88ff88;
+            font-size: 18px;
+            margin: 20px 0 10px 0;
+            border-left: 4px solid #004400;
+            padding-left: 10px;
+        }
+        
+        .documentation h3 {
+            color: #66cc66;
+            font-size: 16px;
+            margin: 15px 0 8px 0;
+        }
+        
+        .documentation p, .documentation li {
+            color: #cccccc;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        
+        .documentation ul {
+            margin-left: 20px;
+        }
+        
+        .warning {
+            background: rgba(255, 204, 0, 0.1);
+            border: 2px solid #ffcc00;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #ffcc00;
+        }
+        
+        .status-panel {
+            background: #1a1a1a;
+            border: 2px solid #004400;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .frequency-display {
+            font-size: 18px;
+            font-weight: bold;
+            text-align: center;
+            color: #00ff00;
+            background: rgba(0, 255, 0, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="radio-container">
+            <div class="radio-body">
+                <div class="antenna"></div>
+                <div class="brand-label">L3HARRIS</div>
+                <div class="model-label">FALCON III AN/PRC-152</div>
+                
+                <div class="display-section">
+                    <div class="status-bar">TX</div>
+                    <div class="display" id="radioDisplay">
+                        <span class="display-line">ZONE: A  CH: 01</span>
+                        <span class="display-line" id="freqDisplay">146.520 MHz</span>
+                        <span class="display-line">PWR: HIGH  SEC: ON</span>
+                        <span class="display-line">VOL: 8    SQL: 3</span>
+                        <span class="display-line">MODE: FM   BW: 25K</span>
+                    </div>
+                </div>
+                
+                <div class="controls-grid">
+                    <button class="control-button" onclick="changeMenu('ZONE')">ZONE<br>↑↓</button>
+                    <button class="control-button" onclick="changeMenu('CHAN')">CHAN<br>↑↓</button>
+                    <button class="control-button" onclick="changeMenu('FREQ')">FREQ<br>SET</button>
+                    <button class="control-button" onclick="changeMenu('MODE')">MODE<br>SEL</button>
+                    
+                    <button class="control-button" onclick="numberPress('1')">1<br>ABC</button>
+                    <button class="control-button" onclick="numberPress('2')">2<br>DEF</button>
+                    <button class="control-button" onclick="numberPress('3')">3<br>GHI</button>
+                    <button class="control-button" onclick="changeMenu('PWR')">PWR<br>↑↓</button>
+                    
+                    <button class="control-button" onclick="numberPress('4')">4<br>JKL</button>
+                    <button class="control-button" onclick="numberPress('5')">5<br>MNO</button>
+                    <button class="control-button" onclick="numberPress('6')">6<br>PQR</button>
+                    <button class="control-button" onclick="changeMenu('SEC')">SEC<br>TOG</button>
+                    
+                    <button class="control-button" onclick="numberPress('7')">7<br>STU</button>
+                    <button class="control-button" onclick="numberPress('8')">8<br>VWX</button>
+                    <button class="control-button" onclick="numberPress('9')">9<br>YZ</button>
+                    <button class="control-button" onclick="enterFunction()">ENT<br>✓</button>
+                    
+                    <button class="control-button" onclick="clearFunction()">CLR<br>←</button>
+                    <button class="control-button" onclick="numberPress('0')">0<br>SPC</button>
+                    <button class="control-button" onclick="menuFunction()">MENU<br>⚙</button>
+                    <button class="control-button" onclick="emergencyFunction()">EMRG<br>!</button>
+                </div>
+                
+                <div style="display: flex; justify-content: space-around; align-items: center;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 12px; color: #888; margin-bottom: 5px;">VOLUME</div>
+                        <div class="rotary-knob" onclick="adjustVolume()"></div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 12px; color: #888; margin-bottom: 5px;">SQUELCH</div>
+                        <div class="rotary-knob" onclick="adjustSquelch()"></div>
+                    </div>
+                </div>
+                
+                <button class="ptt-button" onclick="togglePTT()" id="pttButton">PUSH TO TALK</button>
+                
+                <div class="status-panel">
+                    <div class="status-item">
+                        <span>Battery:</span>
+                        <span id="batteryLevel" style="color: #00ff00;">85%</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Signal:</span>
+                        <span id="signalStrength" style="color: #00ff00;">■■■■□</span>
+                    </div>
+                    <div class="status-item">
+                        <span>GPS:</span>
+                        <span id="gpsStatus" style="color: #00ff00;">LOCKED</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Network:</span>
+                        <span id="networkStatus" style="color: #00ff00;">CONNECTED</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="documentation">
+            <h1>L3HARRIS FALCON III AN/PRC-152<br>MULTIBAND TACTICAL RADIO</h1>
+            
+            <div class="warning">
+                <strong>CLASSIFICATION: TOP SECRET//SI-RGT A</strong><br>
+                This simulation is for training purposes only. Actual radio operations require proper authorization and adherence to communications security protocols.
+            </div>
+            
+            <h2>I. SYSTEM OVERVIEW</h2>
+            <h3>A. Technical Specifications</h3>
+            <ul>
+                <li><strong>Frequency Range:</strong> 30-512 MHz continuous coverage</li>
+                <li><strong>Power Output:</strong> 5W (High), 1W (Medium), 0.5W (Low)</li>
+                <li><strong>Modulation:</strong> FM, AM, USB, LSB</li>
+                <li><strong>Channel Capacity:</strong> 8 Zones × 16 Channels = 128 total</li>
+                <li><strong>Encryption:</strong> NSA Type 1 certified</li>
+                <li><strong>Battery Life:</strong> 12+ hours typical operation</li>
+            </ul>
+            
+            <h3>B. Key Capabilities</h3>
+            <ul>
+                <li>Software-defined architecture (SCA compliant)</li>
+                <li>Simultaneous voice and data transmission</li>
+                <li>GPS-enabled position reporting</li>
+                <li>Ad-hoc networking (ANW2C waveform)</li>
+                <li>UHF SATCOM capability</li>
+                <li>SINCGARS interoperability</li>
+            </ul>
+            
+            <h2>II. OPERATIONAL PROCEDURES</h2>
+            
+            <h3>A. Power-On Sequence</h3>
+            <ol>
+                <li>Ensure battery is properly installed and charged</li>
+                <li>Attach antenna securely to top connector</li>
+                <li>Turn VOLUME knob clockwise to power on</li>
+                <li>Wait for self-test completion (approx. 30 seconds)</li>
+                <li>Verify display shows operational status</li>
+            </ol>
+            
+            <h3>B. Basic Communications Setup</h3>
+            <ol>
+                <li><strong>Zone Selection:</strong> Press ZONE, use ↑↓ to select A-H</li>
+                <li><strong>Channel Selection:</strong> Press CHAN, use ↑↓ to select 1-16</li>
+                <li><strong>Frequency Manual Entry:</strong>
+                    <ul>
+                        <li>Press FREQ SET</li>
+                        <li>Enter frequency using numeric keypad</li>
+                        <li>Press ENT to confirm</li>
+                    </ul>
+                </li>
+                <li><strong>Power Level:</strong> Press PWR, cycle through LOW/MED/HIGH</li>
+                <li><strong>Security Toggle:</strong> Press SEC to enable/disable encryption</li>
+            </ol>
+            
+            <h3>C. Transmission Procedures</h3>
+            <ol>
+                <li>Monitor channel for ongoing traffic (squelch open)</li>
+                <li>Depress and hold PTT button</li>
+                <li>Wait for TX indication on display</li>
+                <li>Speak clearly into microphone (2-3 inches from mouth)</li>
+                <li>Release PTT to receive</li>
+                <li>Maintain communications discipline per SOI</li>
+            </ol>
+            
+            <h2>III. ADVANCED FEATURES</h2>
+            
+            <h3>A. Menu Navigation</h3>
+            <p>Press MENU to access advanced settings:</p>
+            <ul>
+                <li><strong>RADIO SETUP:</strong> Power levels, scan lists, GPS settings</li>
+                <li><strong>COMSEC:</strong> Encryption key management</li>
+                <li><strong>NETWORK:</strong> ANW2C waveform configuration</li>
+                <li><strong>UTILITIES:</strong> Test modes, diagnostics</li>
+            </ul>
+            
+            <h3>B. Emergency Procedures</h3>
+            <ol>
+                <li>Press and hold EMRG button for 3 seconds</li>
+                <li>Radio automatically switches to emergency frequency</li>
+                <li>GPS position transmitted with distress signal</li>
+                <li>Emergency beacon activated</li>
+                <li>To cancel: Press CLR twice within 10 seconds</li>
+            </ol>
+            
+            <h3>C. GPS and Position Reporting</h3>
+            <ul>
+                <li>GPS automatically enabled on power-up</li>
+                <li>Position reports sent per network configuration</li>
+                <li>Manual position report: MENU → UTILITIES → GPS → SEND</li>
+                <li>Accuracy typically ±10 meters</li>
+            </ul>
+            
+            <h2>IV. MAINTENANCE PROTOCOLS</h2>
+            
+            <h3>A. Daily Operator Checks</h3>
+            <ul>
+                <li>Battery voltage check (>11.5V for full capacity)</li>
+                <li>Antenna connection security</li>
+                <li>Display clarity and backlight function</li>
+                <li>Audio quality on known good channel</li>
+                <li>GPS lock status verification</li>
+            </ul>
+            
+            <h3>B. Troubleshooting</h3>
+            <ul>
+                <li><strong>No Power:</strong> Check battery connection/charge level</li>
+                <li><strong>Poor Audio:</strong> Verify antenna connection, adjust squelch</li>
+                <li><strong>No GPS Lock:</strong> Ensure clear sky view, allow 2-5 minutes</li>
+                <li><strong>Network Issues:</strong> Verify waveform configuration matches network</li>
+            </ul>
+            
+            <div class="warning">
+                <strong>COMSEC REMINDER:</strong><br>
+                Proper key management and fill procedures are critical for secure communications. Never transmit classified information over unsecured channels. Maintain strict adherence to SOI and SSI requirements.
+            </div>
+            
+            <h2>V. TACTICAL EMPLOYMENT</h2>
+            
+            <h3>A. Mission Planning Considerations</h3>
+            <ul>
+                <li>Terrain analysis for line-of-sight communications</li>
+                <li>Frequency deconfliction with adjacent units</li>
+                <li>Backup communication plans (PACE methodology)</li>
+                <li>Battery life calculations based on duty cycle</li>
+                <li>COMSEC key scheduling coordination</li>
+            </ul>
+            
+            <h3>B. Network Integration</h3>
+            <p>The Falcon III integrates seamlessly with:</p>
+            <ul>
+                <li>SINCGARS networks (legacy interoperability)</li>
+                <li>UHF SATCOM systems</li>
+                <li>Soldier Radio Waveform (SRW) networks</li>
+                <li>ANW2C adaptive networking waveform</li>
+                <li>Joint fires networks (EPLRS compatible)</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let currentZone = 'A';
+        let currentChannel = 1;
+        let currentFreq = 146.520;
+        let powerLevel = 'HIGH';
+        let securityEnabled = true;
+        let volume = 8;
+        let squelch = 3;
+        let isPTTActive = false;
+        let currentMode = 'FM';
+        let batteryLevel = 85;
+        
+        const frequencies = {
+            'A01': 146.520, 'A02': 147.420, 'A03': 148.100, 'A04': 149.200,
+            'B01': 162.550, 'B02': 163.275, 'B03': 164.100, 'B04': 165.000,
+            'C01': 225.000, 'C02': 243.000, 'C03': 255.400, 'C04': 267.800
+        };
+        
+        function updateDisplay() {
+            const display = document.getElementById('radioDisplay');
+            const channelKey = currentZone + String(currentChannel).padStart(2, '0');
+            const freq = frequencies[channelKey] || currentFreq;
+            
+            display.innerHTML = `
+                <span class="display-line">ZONE: ${currentZone}  CH: ${String(currentChannel).padStart(2, '0')}</span>
+                <span class="display-line">${freq.toFixed(3)} MHz</span>
+                <span class="display-line">PWR: ${powerLevel}  SEC: ${securityEnabled ? 'ON' : 'OFF'}</span>
+                <span class="display-line">VOL: ${volume}    SQL: ${squelch}</span>
+                <span class="display-line">MODE: ${currentMode}   BW: 25K</span>
+            `;
+            
+            // Update battery simulation
+            batteryLevel = Math.max(10, batteryLevel - 0.1);
+            document.getElementById('batteryLevel').textContent = Math.floor(batteryLevel) + '%';
+            document.getElementById('batteryLevel').style.color = 
+                batteryLevel > 30 ? '#00ff00' : batteryLevel > 15 ? '#ffff00' : '#ff4444';
+        }
+        
+        function changeMenu(type) {
+            const button = event.target;
+            button.classList.add('active');
+            setTimeout(() => button.classList.remove('active'), 300);
+            
+            switch(type) {
+                case 'ZONE':
+                    currentZone = String.fromCharCode(65 + (currentZone.charCodeAt(0) - 65 + 1) % 8);
+                    break;
+                case 'CHAN':
+                    currentChannel = (currentChannel % 16) + 1;
+                    break;
+                case 'FREQ':
+                    // Frequency entry mode would be implemented here
+                    showMessage('FREQ ENTRY MODE');
+                    break;
+                case 'MODE':
+                    const modes = ['FM', 'AM', 'USB', 'LSB'];
+                    const currentIndex = modes.indexOf(currentMode);
+                    currentMode = modes[(currentIndex + 1) % modes.length];
+                    break;
+                case 'PWR':
+                    const powers = ['LOW', 'MED', 'HIGH'];
+                    const powerIndex = powers.indexOf(powerLevel);
+                    powerLevel = powers[(powerIndex + 1) % powers.length];
+                    break;
+                case 'SEC':
+                    securityEnabled = !securityEnabled;
+                    break;
+            }
+            updateDisplay();
+        }
+        
+        function numberPress(num) {
+            const button = event.target;
+            button.classList.add('active');
+            setTimeout(() => button.classList.remove('active'), 200);
+            showMessage(`DIGIT: ${num}`);
+        }
+        
+        function enterFunction() {
+            const button = event.target;
+            button.classList.add('active');
+            setTimeout(() => button.classList.remove('active'), 300);
+            showMessage('ENTER PRESSED');
+        }
+        
+        function clearFunction() {
+            const button = event.target;
+            button.classList.add('active');
+            setTimeout(() => button.classList.remove('active'), 300);
+            showMessage('CLEAR PRESSED');
+        }
+        
+        function menuFunction() {
+            const button = event.target;
+            button.classList.add('active');
+            setTimeout(() => button.classList.remove('active'), 500);
+            showMessage('MENU ACCESS');
+        }
+        
+        function emergencyFunction() {
+            const button = event.target;
+            button.classList.add('active');
+            setTimeout(() => button.classList.remove('active'), 1000);
+            showMessage('EMERGENCY ACTIVATED');
+            
+            // Simulate emergency procedures
+            setTimeout(() => {
+                showMessage('GPS POSITION SENT');
+            }, 1000);
+            
+            setTimeout(() => {
+                showMessage('EMERGENCY BEACON ON');
+            }, 2000);
+        }
+        
+        function adjustVolume() {
+            volume = (volume % 10) + 1;
+            updateDisplay();
+            showMessage(`VOLUME: ${volume}`);
+        }
+        
+        function adjustSquelch() {
+            squelch = (squelch % 9) + 1;
+            updateDisplay();
+            showMessage(`SQUELCH: ${squelch}`);
+        }
+        
+        function togglePTT() {
+            const button = document.getElementById('pttButton');
+            const statusBar = document.querySelector('.status-bar');
+            
+            if (!isPTTActive) {
+                isPTTActive = true;
+                button.style.background = 'linear-gradient(145deg, #cc4444, #aa2222)';
+                button.style.transform = 'translateY(2px)';
+                statusBar.textContent = 'TX';
+                statusBar.style.color = '#ff4444';
+                showMessage('TRANSMITTING...');
+                
+                // Auto-release after 30 seconds (safety feature)
+                setTimeout(() => {
+                    if (isPTTActive) togglePTT();
+                }, 30000);
+            } else {
+                isPTTActive = false;
+                button.style.background = 'linear-gradient(145deg, #ff4444, #cc2222)';
+                button.style.transform = 'translateY(0)';
+                statusBar.textContent = 'RX';
+                statusBar.style.color = '#00ff00';
+                showMessage('RECEIVING...');
+            }
+        }
+        
+        function showMessage(message) {
+            const originalContent = document.getElementById('radioDisplay').innerHTML;
+            document.getElementById('radioDisplay').innerHTML = `
+                <span class="display-line" style="color: #ffff00; text-align: center; font-weight: bold;">
+                    ${message}
+                </span>
+            `;
+            
+            setTimeout(() => {
+                document.getElementById('radioDisplay').innerHTML = originalContent;
+            }, 2000);
+        }
+        
+        function simulateIncomingTransmission() {
+            if (!isPTTActive) {
+                const statusBar = document.querySelector('.status-bar');
+                statusBar.textContent = 'RX';
+                statusBar.style.color = '#00ff00';
+                showMessage('INCOMING TRAFFIC');
+                
+                setTimeout(() => {
+                    statusBar.textContent = 'STANDBY';
+                    statusBar.style.color = '#888888';
+                }, 3000);
+            }
+        }
+        
+        function updateSignalStrength() {
+            const strengths = ['■□□□□', '■■□□□', '■■■□□', '■■■■□', '■■■■■'];
+            const randomStrength = strengths[Math.floor(Math.random() * strengths.length)];
+            document.getElementById('signalStrength').textContent = randomStrength;
+        }
+        
+        // Initialize display
+        updateDisplay();
+        
+        // Simulate periodic updates
+        setInterval(() => {
+            updateSignalStrength();
+            if (Math.random() < 0.1) {
+                simulateIncomingTransmission();
+            }
+        }, 5000);
+        
+        // Simulate battery drain
+        setInterval(() => {
+            if (isPTTActive) {
+                batteryLevel = Math.max(0, batteryLevel - 0.5);
+            } else {
+                batteryLevel = Math.
+
+  </script>
+</body>
+</html>
